@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+  .container {
+    display: flex;
+    align-items: center;
+  }
+
+  .container>* {
+    margin-right: 10px;
+  }
+</style>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Client</title>
+</head>
+
+<body>
+  <h1>Robot Client</h1>
+  <div>
+    <label for="serverInput">Reference de robot</label>
+    <input type="text" id="robot-name"  value="R001">
+    <input type="text" id="serverInput" value="ws://localhost:8050">
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn" disabled>Disconnect</button>
+  </div>
+  <div class="container">
+    <span> Metter la synchronisation </span>
+    <button id="modeManual" disabled>manual</button>
+    <button id="modeAuto" >auto</button>
+    <span> ou bien manualement</span>
+    <form id="messageForm">
+      <input type="number" id="messageInput" disabled>
+      <button type="submit" disabled>Send</button>
+    </form>
+  </div>
+  <div id="messages"></div>
+  <script>
+    let ws;
+    function connect() {
+      const serverUrl = document.getElementById('serverInput').value;
+      const robotName = document.getElementById('robot-name').value;
+      ws = new WebSocket(serverUrl);
+
+      // Event handler when the WebSocket connection is established
+      ws.addEventListener('open', function open() {
+        console.log('Connected to WebSocket server');
+        document.getElementById('connectBtn').disabled = true;
+        document.getElementById('disconnectBtn').disabled = false;
+        document.getElementById('messageInput').disabled = false;
+        document.querySelector('#messageForm button[type="submit"]').disabled = false;
+        const wsMsg = JSON.stringify({ mode: 'cnx', type: "ROBOT", username: robotName });
+        console.log(wsMsg);
+        ws.send(wsMsg);
+      });
+
+      // Event handler for incoming messages from the server
+      ws.addEventListener('message', function incoming(event) {
+        console.log('Received from server:', event.data);
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML += `<p>${event.data}</p>`;
+      });
+
+      // Event handler for WebSocket connection close
+      ws.addEventListener('close', function close() {
+        console.log('Disconnected from WebSocket server');
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('disconnectBtn').disabled = true;
+        document.getElementById('messageInput').disabled = true;
+        document.querySelector('#messageForm button[type="submit"]').disabled = true;
+      });
+    }
+
+    function disconnect() {
+      if (ws) {
+        ws.close();
+      }
+    }
+
+
+
+
+
+
+    document.getElementById('connectBtn').addEventListener('click', connect);
+    document.getElementById('disconnectBtn').addEventListener('click', disconnect);
+
+
+    document.getElementById('messageForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const messageInput = document.getElementById('messageInput');
+      const newHistoryRobot = {reference : document.getElementById('robot-name').value,totalPieces : parseFloat( messageInput.value) , timestamp: new Date()};
+      const wsMsg = JSON.stringify({ mode: 'data', type: "robot", username: document.getElementById('robot-name').value , content: newHistoryRobot });
+      ws.send(wsMsg);
+      messageInput.value = '';
+    });
+    document.getElementById('messageInput').addEventListener('input', function (event) {
+      const input = event.target;
+      input.value = input.value.replace(/[^0-9]/g, '');
+    });
+
+    let intervalId;
+    function timerFunction() {
+      const min = 0 ;
+      const max = 100 ;
+       const   randomNumber = 1; 
+      
+      const newHistoryRobot = {reference : document.getElementById('robot-name').value,totalPieces : randomNumber , timestamp: new Date()};
+      console.log (newHistoryRobot );
+      const wsMsg = JSON.stringify({ mode: 'data',  type: "robot", username: document.getElementById('robot-name').value , content: newHistoryRobot });
+      if (ws) {  ws.send(wsMsg);}
+    }
+    function funmodeManual() {
+      document.getElementById('modeAuto').disabled = false;
+      document.getElementById('modeManual').disabled = true;
+      clearInterval(intervalId);
+    }
+    function funmodeAuto() {
+      document.getElementById('modeManual').disabled = false;
+      document.getElementById('modeAuto').disabled = true;
+
+      intervalId = setInterval(timerFunction, 10000);
+    }
+    document.getElementById('modeAuto').onclick = function() {funmodeAuto()};
+    document.getElementById('modeManual').onclick = function() {funmodeManual  ()};
+  </script>
+</body>
+
+</html>

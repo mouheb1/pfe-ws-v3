@@ -1,0 +1,50 @@
+.robot-slot {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    align-items: center !important;
+
+   
+  flex-direction: column;
+  margin-bottom: 20px;
+  
+ 
+  padding: 30px ;
+  padding-right: 150px ;
+  width: 50px !important;
+  height: 150px !important;
+  
+  background-color: rgb(233, 235, 240);
+  box-shadow:0 5px 25px rgba(224, 114, 114, 0.5);
+  border-radius: 10px;
+  transition: 0.7s;
+}
+.robot-slot:hover{
+  transform: scale(1.1);
+}
+
+.slot-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.stats-button,
+.history-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: rgb(186, 186, 182) ;
+  align-items: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+.stats-button:hover,
+.history-button:hover {
+  background-color: rgb(168, 168, 163);
+}
+.robot-slot>img{
+  width: 50px;
+  height: 50px;
+}

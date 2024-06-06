@@ -1,0 +1,78 @@
+.Sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+    border-radius: 30px;
+}
+
+.MainContentWithSidebar {
+    display: flex;
+    height: 95%;
+
+}
+
+.MainContent {
+    flex: 1;
+    width: 80%;
+    /* Le contenu principal prendra tout l'espace restant */
+    padding: 20px;
+    /* Ajoutez un peu d'espace intérieur */
+}
+
+.Enova {
+    display: flex;
+    height: 3rem;
+    justify-content: center;
+    position: relative;
+    top: 30px;
+
+}
+
+
+.menu {
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 2.5rem;
+    margin-left: 2rem;
+    position: relative;
+    border-radius: 0.7rem;
+}
+
+.menuItem:hover {
+    Cursor: pointer;
+
+}
+
+
+.active-sidebar-item {
+    background: var(--activeItem);
+    margin-left: 0%;
+}
+
+.active-sidebar-item::before {
+    content: '';
+    width: 8px;
+    height: 100%;
+    background: var(--pink);
+    margin-right: calc(1rem - 8px);
+}
+
+.avatar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.username {
+    text-align: right;
+    position: relative;
+
+}
