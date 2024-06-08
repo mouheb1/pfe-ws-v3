@@ -232,8 +232,7 @@ const Tableau = () => {
             rules={[{ required: true, message: 'Ce champ est requis' }]}
           >
             <Select placeholder="Sélectionnez un utilisateur">
-              {usersData
-                .users?.filter(user => user.role !== 'Admin')
+              {usersData?.users?.filter(user => user.role !== 'Admin')
                 .map(user => (
                   <Select.Option key={user._id} value={user._id}>
                     {user.nom} {user.prenom} ({user.email})
