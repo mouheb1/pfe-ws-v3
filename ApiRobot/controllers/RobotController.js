@@ -159,11 +159,15 @@ exports.updateRobot = async (req, res) => {
         const updatedRobot = await existingRobot.save();
 
         const history = await History.findOne({ robotId: existingRobot._id })
-        history.totalPieces = req.body.totalPieces
-        await history.save()
+
+        if (history) {
+            history.totalPieces = req.body.totalPieces
+            await history.save()
+        }
 
         return res.status(200).json(updatedRobot);
     } catch (error) {
+        console.error(error);
         res.status(400).json({ message: error.message });
     }
 };

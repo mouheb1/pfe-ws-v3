@@ -91,11 +91,11 @@ const getAllHistory = async (filter = {}, page = 1, limit = 10) => {
 
   // Pagination
   const skip = (page - 1) * limit;
-  
+
   // Count total documents
   const totalDocuments = await History.countDocuments(pipeline.length > 0 ? { $and: pipeline.map(stage => stage.$match || {}) } : {});
   const totalPages = Math.ceil(totalDocuments / limit);
-  
+
   // Add pagination stages
   pipeline.push(
     { $skip: skip },
@@ -127,46 +127,42 @@ const addHistory = async (dataRobot) => {
   const robotId = existingRobot._id.toString();
   let history;
 
-  if (createdHistories[robotId]) {
-    // Update the existing history if it was created in this session
-    const historySource = await History.findOne({ _id: createdHistories[robotId] });
+  const [historySource, histories] = await Promise.all([
+    History.findOne({ robotId }).sort({ startExecutionAt: -1 }),
+    History.find({ robotId })
+  ])
 
-    const palatizedPieces = historySource.palatizedPieces + 1;
-    const completedPallets = Math.floor(palatizedPieces / 100);
+  const totalPalatizedPieces = histories.reduce((total, history) => total + history.palatizedPieces, 0);
 
-    if (palatizedPieces > historySource.totalPieces) {
-      return MsgReponseStatus.builder()
-        .setTitle("Error Message")
-        .setDatestamp(new Date())
-        .setStatus(ResponseStatus.ERROR)
-        .setMessage("all pieces are palatized")
-        .build();
+  if ((!historySource || existingRobot.totalPieces > totalPalatizedPieces) && existingRobot.totalPieces > 0) {
+    if (!createdHistories[robotId]) {
+      // Create a new history record
+      history = new History({
+        _id: new ObjectId(),
+        robotId: existingRobot._id,
+        palatizedPieces: 1,
+        totalPieces: existingRobot.totalPieces,
+        userId: existingRobot.userId,
+        startExecutionAt: new Date(),
+        endExecutionAt: new Date()
+      });
+      await history.save();
+
+      // Store the history ID in the in-memory object
+      createdHistories[robotId] = history._id;
+    } else {
+      const palatizedPieces = historySource.palatizedPieces + 1;
+      const completedPallets = Math.floor(palatizedPieces / 100);
+
+      history = await History.findByIdAndUpdate(historySource._id, {
+        palatizedPieces,
+        completedPallets,
+        totalExecutionDuration: palatizedPieces * 10, // each iteration takes 10 seconds
+        palatizeExecutionDuration: completedPallets * 10 * 100, // each pallet has 100 pieces and each piece takes 10 sec
+        userId: existingRobot.userId,
+        endExecutionAt: new Date()
+      }, { new: true });
     }
-
-    history = await History.findByIdAndUpdate(historySource._id, {
-      palatizedPieces,
-      completedPallets,
-      totalExecutionDuration: palatizedPieces * 10, // each iteration takes 10 seconds
-      palatizeExecutionDuration: completedPallets * 10 * 100, // each pallet has 100 pieces and each piece takes 10 sec
-      userId: existingRobot.userId,
-      endExecutionAt: new Date()
-    }, { new: true });
-
-  } else {
-    // Create a new history record
-    history = new History({
-      _id: new ObjectId(),
-      robotId: existingRobot._id,
-      palatizedPieces: 1,
-      totalPieces: existingRobot.totalPieces,
-      userId: existingRobot.userId,
-      startExecutionAt: new Date(),
-      endExecutionAt: new Date()
-    });
-    await history.save();
-
-    // Store the history ID in the in-memory object
-    createdHistories[robotId] = history._id;
   }
 
   return MsgReponseStatus.builder()
@@ -176,6 +172,7 @@ const addHistory = async (dataRobot) => {
     .setMessage("successfully created history")
     .build();
 };
+
 
 deleteManyHistory = async (robotId) => {
   result = await History.deleteMany({ robotId: robotId });

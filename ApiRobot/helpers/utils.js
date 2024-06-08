@@ -1,5 +1,6 @@
 const History = require("../models/entity/History");
 const moment = require('moment');
+const Robot = require("../models/entity/Robot");
 
 exports.sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -311,4 +312,45 @@ function getDayByIndex(array, index) {
 
   // Return the element at the calculated index
   return index
+}
+
+exports.getRobotsWithPalatizedPieces = async () => {
+  try {
+    // Step 1: Aggregate palatizedPieces from the History collection grouped by robotId
+    const palatizedPiecesByRobot = await History.aggregate([
+      {
+        $group: {
+          _id: '$robotId',
+          totalPalatizedPieces: { $sum: '$palatizedPieces' }
+        }
+      }
+    ]);
+
+    if (!palatizedPiecesByRobot || !palatizedPiecesByRobot.length) {
+      return []
+    }
+
+    // Step 2: Create a mapping from robotId to totalPalatizedPieces
+    const palatizedPiecesMap = palatizedPiecesByRobot.reduce((acc, curr) => {
+      acc[curr._id] = curr.totalPalatizedPieces;
+      return acc;
+    }, {});
+
+    // Step 3: Retrieve robots and add totalPalatizedPieces to each
+    const robots = await Robot.find().lean(); // Use lean() to get plain JavaScript objects
+
+    if (!robots || !robots.length) {
+      return []
+    }
+
+    const robotsWithPalatizedPieces = robots.map(robot => ({
+      ...robot,
+      palatizedPieces: palatizedPiecesMap[robot._id] || 0 // Default to 0 if no palatized pieces found
+    }));
+
+    return robotsWithPalatizedPieces;
+  } catch (error) {
+    console.error('Error fetching robots with palatized pieces:', error);
+    throw error;
+  }
 }

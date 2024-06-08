@@ -8,31 +8,28 @@ const Robot = require("../models/entity/Robot");
 const User = require("../models/entity/User");
 const { clientService } = require("../services/client.service");
 const { historyService } = require("../services/history.service");
-const { sleep, getPieChart, getColumnChart, getAreaChart, getDailyStats, getWeeklyStats, getProfileHtml } = require('../helpers/utils');
+const { sleep, getPieChart, getColumnChart, getAreaChart, getDailyStats, getWeeklyStats, getProfileHtml, getRobotsWithPalatizedPieces } = require('../helpers/utils');
 
 moment.locale('fr');
 
 exports.getAllLengthCollections = async (req, res) => {
   try {
-    const histories = await historyService.selectAll();
-    const robots = await Robot.find();
+
+    const connectedRobots = await clientService.selectAllRobots()
+
+    const robots = await getRobotsWithPalatizedPieces()
 
     let totalPieces = 0;
+    let piecesPalatizes = 0;
     robots.forEach((robot) => {
       totalPieces += robot.totalPieces;
+      piecesPalatizes += parseFloat(robot.palatizedPieces);
     }); //kol robot tzidou fel ajout t3tih nombres de pieces y3ml somme = piece prise
 
-    let piecesPalatizes = 0;
-    histories?.histories?.forEach((hitory) => {
-      piecesPalatizes += parseFloat(hitory.palatizedPieces);
-    });  //kol piéce palatize ya5dhha men history tetzad fel pieces palatizé
-    //==> odkhol lel modele tw tefhm
     return res.json({
-      countRobots: clientService.selectAllRobots().length,
-      robotsReference:
-        clientService.selectAllRobots()?.map((robot) => robot.username) || [],
+      countRobots: connectedRobots.length,
+      robotsReference: connectedRobots?.map((robot) => robot.username) || [],
       robotInfo: robots || [],
-      countUsers: clientService.selectAllUsers().length,
       totalNombrePieces: totalPieces,
       totalNombrePiecesPalatizes: piecesPalatizes
     });
