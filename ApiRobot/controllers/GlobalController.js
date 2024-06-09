@@ -18,7 +18,7 @@ exports.getAllLengthCollections = async (req, res) => {
     const connectedRobots = await clientService.selectAllRobots()
 
     const robots = await getRobotsWithPalatizedPieces()
-
+console.log('robots', robots);
     let totalPieces = 0;
     let piecesPalatizes = 0;
     robots.forEach((robot) => {
