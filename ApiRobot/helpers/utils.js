@@ -280,8 +280,8 @@ function processChartData(data) {
   }
 
   for (const item of data.dailyCurrentMonth) {
-    const dayOfWeek = days[item.dayOfWeek - 2]; // Adjust for Monday-based index
-    dailyStats.currentMonth[days.indexOf(dayOfWeek)] = item.totalPalatizedPieces;
+    const dayOfWeek = days[getDayByIndex(days, item.dayOfWeek - 2)]; // Adjust for Monday-based index
+    dailyStats.currentMonth[getDayByIndex(days, days.indexOf(dayOfWeek))] = item.totalPalatizedPieces;
   }
 
   return dailyStats;
