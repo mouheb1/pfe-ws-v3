@@ -326,15 +326,14 @@ exports.getRobotsWithPalatizedPieces = async () => {
       }
     ]);
 
-    if (!palatizedPiecesByRobot || !palatizedPiecesByRobot.length) {
-      return []
+    let palatizedPiecesMap = 0
+    if (palatizedPiecesByRobot && palatizedPiecesByRobot.length) {
+      // Step 2: Create a mapping from robotId to totalPalatizedPieces
+      palatizedPiecesMap = palatizedPiecesByRobot.reduce((acc, curr) => {
+        acc[curr._id] = curr.totalPalatizedPieces;
+        return acc;
+      }, {});
     }
-
-    // Step 2: Create a mapping from robotId to totalPalatizedPieces
-    const palatizedPiecesMap = palatizedPiecesByRobot.reduce((acc, curr) => {
-      acc[curr._id] = curr.totalPalatizedPieces;
-      return acc;
-    }, {});
 
     // Step 3: Retrieve robots and add totalPalatizedPieces to each
     const robots = await Robot.find().lean(); // Use lean() to get plain JavaScript objects
